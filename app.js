@@ -6,8 +6,8 @@ const app = express();
 app.use(morgan('common'));
 
 app.get('/apps',(req,res) =>{
-  const { search = '', sort } = req.query;
-  const{filter = '',genres} = req.query;
+  const { sort, genres } = req.query;
+ 
   if (sort) {
     if (!['Rating', 'App'].includes(sort)) {
       return res
@@ -15,13 +15,23 @@ app.get('/apps',(req,res) =>{
         .send('Sort must be one of rating or app');
     }
   }
+  if (genres) {
+    if (!['action', 'puzzle','strategy','casual','arcade','card'].includes(genres.toLowerCase())) {
+      return res
+        .status(400)
+        .send('genre must be Action,Puzzle,strategey');
+    }
+  }
 
   let results = playstore
     .filter(game =>
-      game
-        .App
-        .toLowerCase()
-        .includes(search.toLowerCase()));
+    {
+      if(genres) {
+        return game.Genres.toLowerCase().includes(genres.toLowerCase());
+      } else {
+        return true;
+      }
+    });
 
   if (sort) {
     results
@@ -30,25 +40,15 @@ app.get('/apps',(req,res) =>{
       });
      
   }
+ 
+  
+     
   res.json(results);
 });
 
-  if (genres) {
-    if (!['Action', 'Puzzle','Strategy','casual','Arcade','card'].includes(genres)) {
-      return res
-        .status(400)
-        .send('genre must be Action,Puzzle,strategey');
-    }
-  }
+
   
-  let filterGenres = playstore
-    .filter(genres =>
-      genres
-        .Genres
-        .toLowerCase()
-        .includes(filter.toLowerCase()));
-  
-        res.json(filterGenres)
+        
   
 
 
